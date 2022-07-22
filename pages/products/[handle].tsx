@@ -6,7 +6,7 @@ import {
 } from "next";
 import Head from "next/head";
 import Image from "next/image";
-import Shopify from "@shopify/shopify-api";
+import { getProductByHandle, Product } from "@/libs/shopify";
 
 export const getStaticPaths: GetStaticPaths = async () => {
   return {
@@ -15,52 +15,6 @@ export const getStaticPaths: GetStaticPaths = async () => {
   };
 };
 
-type Product = {
-  id: string;
-  handle: string;
-  title: string;
-  createdAt: string;
-  updatedAt: string;
-  featuredImage: {
-    id: string;
-    width: number;
-    height: number;
-    url: string;
-    altText: string | null;
-  } | null;
-  seo: {
-    title: string | null;
-    description: string | null;
-  };
-  description: string;
-  descriptionHtml: string;
-};
-
-const query = (handle: string) => `
-{
-  productByHandle(handle: "${handle}") {
-    id
-    handle
-    title
-    createdAt
-    updatedAt
-    featuredImage {
-      id
-      width
-      height
-      url
-      altText
-    }
-    seo {
-      title
-      description
-    }
-    description
-    descriptionHtml
-  }
-}
-`;
-
 export const getStaticProps: GetStaticProps<
   { product: Product },
   { handle: string }
@@ -68,22 +22,11 @@ export const getStaticProps: GetStaticProps<
   const handle = params?.handle;
   if (!handle) throw new Error();
 
-  const client = new Shopify.Clients.Graphql(
-    `${process.env.SHOPIFY_SHOP_NAME}.myshopify.com`,
-    process.env.SHOPIFY_API_SECRET_KEY
-  );
-  const {
-    body: {
-      // @ts-ignore
-      data: { productByHandle },
-    },
-  } = await client.query({
-    data: query(handle),
-  });
+  const product = await getProductByHandle(handle);
 
   return {
     props: {
-      product: productByHandle,
+      product,
     },
     revalidate: 3600,
   };
