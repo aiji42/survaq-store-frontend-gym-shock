@@ -1,5 +1,5 @@
 import { Html, Head, Main, NextScript } from "next/document";
-import { GTM } from "@/components/gtm";
+import { GTM, NoscriptGTM } from "@/components/gtm";
 
 export default function Document() {
   return (
@@ -10,6 +10,7 @@ export default function Document() {
         <meta name="format-detection" content="telephone=no" />
       </Head>
       <body>
+        <NoscriptGTM gtmId="foo" />
         <Main />
         <NextScript />
         <script src="/cart.js" defer />
