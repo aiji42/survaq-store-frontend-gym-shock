@@ -10,7 +10,10 @@ import { getProductByHandle, Product } from "@/libs/shopify";
 
 export const getStaticPaths: GetStaticPaths = async () => {
   return {
-    paths: [{ params: { handle: "bihada" } }],
+    paths:
+      process.env.PRODUCT_HANDLES?.split(",").map((handle) => ({
+        params: { handle },
+      })) ?? [],
     fallback: false,
   };
 };
