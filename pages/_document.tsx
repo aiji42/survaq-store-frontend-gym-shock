@@ -5,7 +5,7 @@ export default function Document() {
   return (
     <Html lang="ja">
       <Head>
-        <GTM gtmId="foo" />
+        <GTM gtmId={process.env.NEXT_PUBLIC_GTM_ID ?? ""} />
         <meta charSet="utf-8" />
         <meta name="format-detection" content="telephone=no" />
       </Head>
