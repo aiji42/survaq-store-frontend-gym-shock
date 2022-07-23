@@ -1,6 +1,6 @@
-import type { GetStaticProps, NextPage } from "next";
+import type { GetServerSideProps, NextPage } from "next";
 
-export const getStaticProps: GetStaticProps = () => {
+export const getServerSideProps: GetServerSideProps = async () => {
   const handle = process.env.PRODUCT_HANDLES?.split(",")[0];
   if (handle)
     return {
