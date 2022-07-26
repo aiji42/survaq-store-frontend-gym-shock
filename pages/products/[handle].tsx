@@ -5,7 +5,6 @@ import {
   NextPage,
 } from "next";
 import Head from "next/head";
-import Image from "next/image";
 import { getProductByHandle, Product } from "@/libs/shopify";
 
 export const getStaticPaths: GetStaticPaths = async () => {
@@ -47,26 +46,7 @@ export const Page: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
           content={product.seo.description || product.description}
         />
       </Head>
-      <header className="main_header">
-        <h1 className="main_title">{product.title}</h1>
-      </header>
-      <main className="main_content">
-        {product.featuredImage && (
-          <div className="mv">
-            <Image
-              priority
-              src={product.featuredImage.url}
-              alt={product.featuredImage.altText ?? product.title}
-              width={product.featuredImage.width}
-              height={product.featuredImage.height}
-            />
-          </div>
-        )}
-
-        <div id="product-component-1658452708280" />
-        <div dangerouslySetInnerHTML={{ __html: product.descriptionHtml }} />
-      </main>
-      <footer className="main_footer">ここにフッター</footer>
+      <div dangerouslySetInnerHTML={{ __html: product.descriptionHtml }} />
     </>
   );
 };

@@ -1,7 +1,9 @@
-import "@/styles/globals.css";
-import "@/styles/product.scss";
+import "@/styles/reset.css";
+import "@/styles/globals.scss";
 import type { AppProps } from "next/app";
 import Head from "next/head";
+import { Footer } from "@/components/Footer";
+import { Header } from "@/components/Header";
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
@@ -9,7 +11,12 @@ function MyApp({ Component, pageProps }: AppProps) {
       <Head>
         <meta name="viewport" content="width=device-width" />
       </Head>
-      <Component {...pageProps} />
+      <Header />
+      <main className="item_main_content">
+        <Component {...pageProps} />
+      </main>
+
+      <Footer />
     </>
   );
 }

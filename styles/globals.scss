@@ -1,0 +1,98 @@
+// google font
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Zen+Kurenaido&display=swap');
+
+// setting
+$maxWidthSize: 750;
+$baseFontSize: 16;
+
+//function
+@function rem($pixels) {
+  @return $pixels / $baseFontSize * 1rem;
+}
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: rem(16);
+  line-height: 1.7;
+}
+a:link,a:visited,a:active{
+  color: #333;
+  text-decoration: none;
+}
+
+// header ------------------------------
+.item_header{
+  width: 100%;
+  max-width: rem($maxWidthSize);
+  margin: 0 auto;
+  padding: rem(10);
+
+  .item_logo{
+    display: flex;
+    align-items: center;
+
+    img {
+      width: 20%;
+      max-width: 100px;
+    }
+  }
+}
+
+// main --------------------------------
+.item_main_content {
+  max-width: rem($maxWidthSize);
+  margin: 0 auto;
+
+  img{
+    max-width: 100%;
+  }
+
+  section {
+    padding: 0 5%;
+    box-sizing: border-box;
+
+    p {
+      color: #333;
+      font-size: 16px;
+      margin: 0 0 30px;
+    }
+  }
+}
+
+// footer ------------------------------
+.item_footer{
+  font-size: rem(15);
+  background: #f6f6f6;
+  padding: 0 0 rem(30);
+
+  .footer_link_list{
+    max-width: rem($maxWidthSize);
+    list-style-type: none;
+    margin: 0 auto rem(30);
+    border-bottom: solid 1px #ddd;
+
+    li a{
+      display: block;;
+      padding: rem(20);
+    }
+    li + li {
+      border-top: solid 1px #ddd;
+    }
+  }
+  .payment{
+    .payment_ico{
+      width: 90%;
+      max-width: rem(500);
+      margin: 0 auto rem(20);
+      mix-blend-mode: multiply;
+
+      img{
+        max-width: 100%;
+      }
+    }
+  }
+  .copyright{
+    font-size: rem(10);
+    text-align: center;
+  }
+}

@@ -8,7 +8,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','${gtmId}');`;
 
-export const GTM: FC<{ gtmId: string }> = ({ gtmId }) => {
+export const Gtm: FC<{ gtmId: string }> = ({ gtmId }) => {
   return <script dangerouslySetInnerHTML={{ __html: script(gtmId) }} />;
 };
 
