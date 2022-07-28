@@ -49,7 +49,7 @@ export const Page: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
         description={description}
         openGraph={{
           site_name: shortTitle,
-          url: `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/${handle}`,
+          url: `https://${process.env.NEXT_PUBLIC_SITE_DOMAIN}/${handle}`,
           type: "article",
           title,
           description,
