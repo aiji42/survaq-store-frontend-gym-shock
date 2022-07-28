@@ -1,9 +1,9 @@
 import { NextApiHandler } from "next";
 
-export const handler: NextApiHandler = async (req, res) => {
+const handler: NextApiHandler = async (req, res) => {
   try {
     console.log(req.body);
-    const handle = req.body.contents.handle;
+    // const handle = req.body.contents.handle;
     // await res.unstable_revalidate(`/${handle}`);
 
     return res.status(200).send({});
@@ -12,3 +12,5 @@ export const handler: NextApiHandler = async (req, res) => {
     return res.status(500).send("Error revalidating");
   }
 };
+
+export default handler;
