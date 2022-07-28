@@ -11,6 +11,7 @@ export default function Document() {
         <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/survaq_logo_180x180.png" />
         <link rel="icon" type="image/png" href="/survaq_logo_192x192.png" />
+        <meta name="robots" content="noindex,nofollow" />
       </Head>
       <body>
         <NoscriptGTM gtmId="foo" />

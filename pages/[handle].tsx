@@ -4,8 +4,8 @@ import {
   InferGetStaticPropsType,
   NextPage,
 } from "next";
-import Head from "next/head";
 import { getProductByHandle, Product } from "@/libs/shopify";
+import { NextSeo } from "next-seo";
 
 export const getStaticPaths: GetStaticPaths = async () => {
   return {
@@ -18,7 +18,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 };
 
 export const getStaticProps: GetStaticProps<
-  { product: Product },
+  { product: Product; handle: string },
   { handle: string }
 > = async ({ params }) => {
   const handle = params?.handle;
@@ -29,6 +29,7 @@ export const getStaticProps: GetStaticProps<
   return {
     props: {
       product,
+      handle,
     },
     revalidate: 3600,
   };
@@ -36,16 +37,34 @@ export const getStaticProps: GetStaticProps<
 
 export const Page: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
   product,
+  handle,
 }) => {
+  const title = product.seo.title || product.title;
+  const shortTitle = title.split("|")[0].trim();
+  const description = product.seo.description || product.description;
   return (
     <>
-      <Head>
-        <title>{product.seo.title || product.title}</title>
-        <meta
-          name="description"
-          content={product.seo.description || product.description}
-        />
-      </Head>
+      <NextSeo
+        title={title}
+        description={description}
+        openGraph={{
+          site_name: shortTitle,
+          url: `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/${handle}`,
+          type: "article",
+          title,
+          description,
+          locale: "ja_JP",
+          images: [
+            {
+              // FIXME
+              url: "https://cdn.shopify.com/s/files/1/0562/8844/4621/files/ogp_image.jpg?v=1658454763",
+            },
+          ],
+        }}
+        twitter={{
+          cardType: "summary_large_image",
+        }}
+      />
       <div dangerouslySetInnerHTML={{ __html: product.descriptionHtml }} />
     </>
   );

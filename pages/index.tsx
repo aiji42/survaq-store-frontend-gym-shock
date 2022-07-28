@@ -6,7 +6,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
     return {
       redirect: {
         statusCode: 301,
-        destination: `/products/${handle}`,
+        destination: `/${handle}`,
       },
     };
 
