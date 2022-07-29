@@ -10,6 +10,7 @@ $baseFontSize: 16;
   @return $pixels / $baseFontSize * 1rem;
 }
 
+//common
 body {
   font-family: 'Noto Sans JP', sans-serif;
   font-size: rem(16);
@@ -37,28 +38,11 @@ a:link,a:visited,a:active{
     }
   }
 }
-
-// main --------------------------------
+// main ------------------------------
 .item_main_content {
-  max-width: rem($maxWidthSize);
   margin: 0 auto;
-
-  img{
-    max-width: 100%;
-  }
-
-  section {
-    padding: 0 5%;
-    box-sizing: border-box;
-
-    p {
-      color: #333;
-      font-size: 16px;
-      margin: 0 0 30px;
-    }
-  }
+  width: fit-content;
 }
-
 // footer ------------------------------
 .item_footer{
   font-size: rem(15);
