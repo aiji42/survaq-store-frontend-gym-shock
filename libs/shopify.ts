@@ -13,6 +13,7 @@ export type Product = {
     url: string;
     altText: string | null;
   } | null;
+  images: { edges: { node: { url: string } }[] };
   seo: {
     title: string | null;
     description: string | null;
@@ -35,6 +36,13 @@ const query = (handle: string) => `
       height
       url
       altText
+    }
+    images(first: 5) {
+      edges {
+        node {
+          url
+        }
+      }
     }
     seo {
       title

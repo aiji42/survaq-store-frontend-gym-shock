@@ -54,12 +54,7 @@ export const Page: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
           title,
           description,
           locale: "ja_JP",
-          images: [
-            {
-              // FIXME
-              url: "https://cdn.shopify.com/s/files/1/0562/8844/4621/files/ogp_image.jpg?v=1658454763",
-            },
-          ],
+          images: product.images.edges.slice(0, 1).map(({ node }) => node),
         }}
         twitter={{
           cardType: "summary_large_image",
