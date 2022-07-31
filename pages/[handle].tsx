@@ -6,13 +6,7 @@ import {
 } from "next";
 import { getProductByHandle, Product } from "@/libs/shopify";
 import { NextSeo } from "next-seo";
-import Script from "next/script";
-
-declare global {
-  interface Window {
-    customScriptSurvaq: (id: number) => void;
-  }
-}
+import { ReplaceDeliverySchedule } from "@/components/ReplaceDeliverySchedule";
 
 const productSets: { handle: string; productId: number }[] = JSON.parse(
   process.env.PRODUCT_HANDLES ?? "[]"
@@ -73,13 +67,7 @@ export const Page: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
           cardType: "summary_large_image",
         }}
       />
-      <Script
-        src="https://survaq-shopify-partial.vercel.app/bundle.umd.js"
-        strategy="afterInteractive"
-        onLoad={() => {
-          window.customScriptSurvaq(productId);
-        }}
-      />
+      <ReplaceDeliverySchedule productId={productId} />
       <div dangerouslySetInnerHTML={{ __html: product.descriptionHtml }} />
     </>
   );
