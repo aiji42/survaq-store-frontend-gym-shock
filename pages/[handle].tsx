@@ -6,11 +6,22 @@ import {
 } from "next";
 import { getProductByHandle, Product } from "@/libs/shopify";
 import { NextSeo } from "next-seo";
+import Script from "next/script";
+
+declare global {
+  interface Window {
+    customScriptSurvaq: (id: number) => void;
+  }
+}
+
+const productSets: { handle: string; productId: number }[] = JSON.parse(
+  process.env.PRODUCT_HANDLES ?? "[]"
+);
 
 export const getStaticPaths: GetStaticPaths = async () => {
   return {
     paths:
-      process.env.PRODUCT_HANDLES?.split(",").map((handle) => ({
+      productSets.map(({ handle }) => ({
         params: { handle },
       })) ?? [],
     fallback: false,
@@ -18,7 +29,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 };
 
 export const getStaticProps: GetStaticProps<
-  { product: Product; handle: string },
+  { product: Product; handle: string; productId: number },
   { handle: string }
 > = async ({ params }) => {
   const handle = params?.handle;
@@ -30,6 +41,7 @@ export const getStaticProps: GetStaticProps<
     props: {
       product,
       handle,
+      productId: productSets.find(({ handle: h }) => h === handle)!.productId,
     },
     revalidate: 3600,
   };
@@ -38,6 +50,7 @@ export const getStaticProps: GetStaticProps<
 export const Page: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
   product,
   handle,
+  productId,
 }) => {
   const title = product.seo.title || product.title;
   const shortTitle = title.split("|")[0].trim();
@@ -58,6 +71,13 @@ export const Page: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
         }}
         twitter={{
           cardType: "summary_large_image",
+        }}
+      />
+      <Script
+        src="https://survaq-shopify-partial.vercel.app/bundle.umd.js"
+        strategy="afterInteractive"
+        onLoad={() => {
+          window.customScriptSurvaq(productId);
         }}
       />
       <div dangerouslySetInnerHTML={{ __html: product.descriptionHtml }} />
