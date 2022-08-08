@@ -18,7 +18,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
       productSets.map(({ handle }) => ({
         params: { handle },
       })) ?? [],
-    fallback: false,
+    fallback: 'blocking',
   };
 };
 
@@ -28,6 +28,14 @@ export const getStaticProps: GetStaticProps<
 > = async ({ params }) => {
   const handle = params?.handle;
   if (!handle) throw new Error();
+  if (!productSets.map(({ handle }) => handle).includes(handle))
+    return {
+      redirect: {
+        statusCode: 301,
+        destination: `/${productSets[0].handle}`
+      },
+      revalidate: 3600
+    }
 
   const product = await getProductByHandle(handle);
 
