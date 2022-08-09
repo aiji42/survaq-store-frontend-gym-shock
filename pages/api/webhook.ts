@@ -8,7 +8,7 @@ const handler: NextApiHandler = async (req, res) => {
     return res.status(200).send({});
   } catch (err) {
     console.error(err);
-    return res.status(500).send("Error revalidating");
+    return res.status(200).send("Error revalidating");
   }
 };
 
