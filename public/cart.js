@@ -32,6 +32,7 @@
         moneyFormat: "%C2%A5%7B%7Bamount_no_decimals%7D%7D",
         options: {
           product: {
+            iframe: false,
             styles: {
               product: {
                 "@media (min-width: 601px)": {
