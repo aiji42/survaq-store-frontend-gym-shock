@@ -8,6 +8,11 @@ type Props = Required<
   productId: number;
 };
 
+type ProductObject = {
+  selectedVariantTrackingInfo: { id: string };
+  setCustomAttributes: (arg: Array<{ key: string; value: string }>) => void;
+};
+
 export const Cart = ({ variants, rule, skuLabel, productId }: Props) => {
   const [selectingVariantId, setVariantId] = useState<string | null>(null);
   const variant = useMemo(() => {
@@ -58,7 +63,37 @@ export const Cart = ({ variants, rule, skuLabel, productId }: Props) => {
     handleSku({ type: "reset", count: variant?.skuSelectable ?? 0 });
   }, [variant]);
 
-  console.log(selectedSkus);
+  useEffect(() => {
+    window.ShopifyCustomAttribute = [
+      ...selectedSkus.map(({ name }, index) => ({
+        key: selects[index].label ?? "",
+        value: name,
+      })),
+      {
+        key: "_skus",
+        value: JSON.stringify(selectedSkus.map(({ code }) => code)),
+      },
+      {
+        key: "配送予定",
+        value: `${rule.schedule.text}(${rule.schedule.subText})`,
+      },
+      {
+        key: "_delivery_schedule",
+        value: `${rule.schedule.year}-${String(rule.schedule.month).padStart(
+          2,
+          "0"
+        )}-${rule.schedule.term}`,
+      },
+    ];
+  }, [
+    rule.schedule.month,
+    rule.schedule.subText,
+    rule.schedule.term,
+    rule.schedule.text,
+    rule.schedule.year,
+    selectedSkus,
+    selects,
+  ]);
 
   return (
     <>
@@ -83,17 +118,14 @@ export const Cart = ({ variants, rule, skuLabel, productId }: Props) => {
         src="/buybutton.js"
         strategy="afterInteractive"
         onLoad={() => {
-          var client = window.ShopifyBuy.buildClient({
+          const client = window.ShopifyBuy.buildClient({
             domain: "survaq.myshopify.com",
-            storefrontAccessToken: "c17165e39598436fb3ae3a00b86f634c",
+            storefrontAccessToken:
+              process.env.NEXT_PUBLIC_STORE_FRONT_ACCESS_TOKEN,
           });
           window.ShopifyBuy.UI.init(client).createComponent("product", {
             id: productId,
             node: document.getElementById("product-component-1658452708280"),
-            customAttributes: [
-              { key: "_someHiddenKey", value: "someHiddenValue" },
-              { key: "someKey", value: "someValue" },
-            ],
             moneyFormat: "%C2%A5%7B%7Bamount_no_decimals%7D%7D",
             options: {
               product: {
@@ -135,37 +167,20 @@ export const Cart = ({ variants, rule, skuLabel, productId }: Props) => {
                   button: "カートに追加",
                 },
                 events: {
-                  afterRender: function (product) {
+                  afterRender: function (product: ProductObject) {
                     const id = product.selectedVariantTrackingInfo.id.replace(
                       "gid://shopify/ProductVariant/",
                       ""
                     );
                     setVariantId(id);
-                    const variant = variants.find(
-                      ({ variantId }) => variantId === id
-                    );
-                    product.setCustomAttributes([
-                      ...(variant
-                        ? [
-                            {
-                              key: "_skus",
-                              value: JSON.stringify(
-                                variant.skus.map(({ code }) => code)
-                              ),
-                            },
-                          ]
-                        : []),
-                      {
-                        key: "配送予定",
-                        value: `${rule.schedule.text}(${rule.schedule.subText})`,
-                      },
-                      {
-                        key: "_delivery_schedule",
-                        value: `${rule.schedule.year}-${String(
-                          rule.schedule.month
-                        ).padStart(2, "0")}-${rule.schedule.term}`,
-                      },
-                    ]);
+                  },
+                  addVariantToCart: (product: ProductObject) => {
+                    console.log(window.ShopifyCustomAttribute);
+                    if (window.ShopifyCustomAttribute) {
+                      product.setCustomAttributes(
+                        window.ShopifyCustomAttribute
+                      );
+                    }
                   },
                 },
               },
