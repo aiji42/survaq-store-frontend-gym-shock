@@ -7,7 +7,7 @@ import {
 import { getProductByHandle, Product } from "@/libs/shopify";
 import { NextSeo } from "next-seo";
 import { ReplaceDeliverySchedule } from "@/components/ReplaceDeliverySchedule";
-import { getProductOnMicroCms, ProductOnMicroCms } from "@/libs/microCms";
+import { getProductFromApi, ProductFromApi } from "@/libs/restApi";
 import { Cart } from "@/components/Cart";
 
 const productSets: { handle: string; productId: number }[] = JSON.parse(
@@ -26,7 +26,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
 export const getStaticProps: GetStaticProps<
   { product: Product; handle: string; productId: number } & Required<
-    Pick<ProductOnMicroCms, "variants" | "skuLabel">
+    Pick<ProductFromApi, "variants" | "skuLabel" | "rule">
   >,
   { handle: string }
 > = async ({ params }) => {
@@ -44,9 +44,9 @@ export const getStaticProps: GetStaticProps<
   const productId = productSets.find(
     ({ handle: h }) => h === handle
   )!.productId;
-  const [product, { variants, skuLabel = "" }] = await Promise.all([
+  const [product, { variants = [], skuLabel = "", rule }] = await Promise.all([
     getProductByHandle(handle),
-    getProductOnMicroCms(productId),
+    getProductFromApi(productId),
   ]);
 
   return {
@@ -56,6 +56,7 @@ export const getStaticProps: GetStaticProps<
       productId,
       variants,
       skuLabel,
+      rule,
     },
     revalidate: 3600,
   };
@@ -67,6 +68,7 @@ export const Page: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
   productId,
   variants,
   skuLabel,
+  rule,
 }) => {
   const title = product.seo.title || product.title;
   const shortTitle = title.split("|")[0].trim();
@@ -90,8 +92,13 @@ export const Page: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
         }}
       />
       <ReplaceDeliverySchedule productId={productId} />
-      <Cart variants={variants} skuLabel={skuLabel} />
       <div dangerouslySetInnerHTML={{ __html: product.descriptionHtml }} />
+      <Cart
+        variants={variants}
+        skuLabel={skuLabel}
+        rule={rule}
+        productId={productId}
+      />
     </>
   );
 };
