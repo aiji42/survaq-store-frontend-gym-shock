@@ -56,20 +56,26 @@ export const AddToCart = ({
     <>
       <MountOnOuterRoot target={target.current}>
         {selects.map(({ label, selected, variant }, index) => (
-          <div key={index}>
-            <label>{label}</label>
-            <select
-              onChange={(e) =>
-                handleSku({ type: "select", value: e.target.value, index })
-              }
-              defaultValue={selected.code}
-            >
-              {variant.skus.map(({ name, code }) => (
-                <option key={code} value={code}>
-                  {name}
-                </option>
-              ))}
-            </select>
+          <div key={index} className="shopify-buy__option-select">
+            <label className="shopify-buy__option-select__label">{label}</label>
+            <div className="shopify-buy__option-select-wrapper">
+              <select
+                className="shopify-buy__option-select__select"
+                onChange={(e) =>
+                  handleSku({ type: "select", value: e.target.value, index })
+                }
+                defaultValue={selected.code}
+              >
+                {variant.skus.map(({ name, code }) => (
+                  <option key={code} value={code}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+              <svg className="shopify-buy__select-icon" viewBox="0 0 24 24">
+                <path d="M21 5.176l-9.086 9.353L3 5.176.686 7.647 12 19.382 23.314 7.647 21 5.176z" />
+              </svg>
+            </div>
           </div>
         ))}
       </MountOnOuterRoot>
@@ -102,22 +108,20 @@ const makeOnLoad =
     });
     window.ShopifyBuy.UI.init(client).createComponent("product", {
       id: productId,
-      node: document.getElementById("product-component-1658452708280"),
+      node:
+        document.getElementById("buy-button") ??
+        document.getElementById("product-component-1658452708280"),
       moneyFormat: "%C2%A5%7B%7Bamount_no_decimals%7D%7D",
       options: {
         product: {
           iframe: false,
-          templates: {
-            button: `
-                     <div id="custom-selects-wrapper"></div>
-                     <div class="shopify-buy__btn-wrapper" data-element="product.buttonWrapper">
-                        <button class="shopify-buy__btn" data-element="product.button">カートに追加</button>
-                     </div>`,
-          },
           contents: {
             img: false,
             title: false,
             price: false,
+          },
+          text: {
+            button: "カートに追加",
           },
           events: {
             afterRender: (product: ProductObject) => {
@@ -133,7 +137,9 @@ const makeOnLoad =
                 ),
               });
               target.current = document
-                .getElementById("custom-selects-wrapper")!
+                .getElementsByClassName(
+                  "shopify-buy__product__variant-selectors"
+                )[0]!
                 .appendChild(document.createElement("div"));
             },
             addVariantToCart: (product: ProductObject) => {
