@@ -1,9 +1,9 @@
 import { GetStaticPaths, GetStaticProps } from "next";
 import { getProduct, Product } from "@/libs/getProduct";
-import { ReplaceDeliverySchedule } from "@/components/ReplaceDeliverySchedule";
 import { AddToCart } from "@/components/AddToCart";
 import { ComponentProps } from "react";
 import { ProductPageSeo } from "@/components/ProductPageSeo";
+import { useReplaceSchedule } from "@/libs/hooks/useReplaceSchedule";
 
 const productSets: { handle: string; productId: number }[] = JSON.parse(
   process.env.PRODUCT_HANDLES ?? "[]"
@@ -50,14 +50,14 @@ export const getStaticProps: GetStaticProps<
 };
 
 type Props = ComponentProps<typeof AddToCart> &
-  ComponentProps<typeof ReplaceDeliverySchedule> &
   ComponentProps<typeof ProductPageSeo> & { product: Product };
 
 export const Page = (props: Props) => {
+  useReplaceSchedule(props.product);
+
   return (
     <>
       <ProductPageSeo {...props} />
-      <ReplaceDeliverySchedule {...props} />
       <div
         dangerouslySetInnerHTML={{ __html: props.product.descriptionHtml }}
       />
