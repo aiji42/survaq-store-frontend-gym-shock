@@ -14,10 +14,9 @@ export default function Document() {
         <meta name="robots" content="noindex,nofollow" />
       </Head>
       <body>
-        <NoscriptGTM gtmId="foo" />
+        <NoscriptGTM gtmId={process.env.NEXT_PUBLIC_GTM_ID ?? ""} />
         <Main />
         <NextScript />
-        <script src="/cart.js" defer />
       </body>
     </Html>
   );

@@ -1,12 +1,9 @@
-import {
-  GetStaticPaths,
-  GetStaticProps,
-  InferGetStaticPropsType,
-  NextPage,
-} from "next";
-import { getProductByHandle, Product } from "@/libs/shopify";
-import { NextSeo } from "next-seo";
-import { ReplaceDeliverySchedule } from "@/components/ReplaceDeliverySchedule";
+import { GetStaticPaths, GetStaticProps } from "next";
+import { getProduct, Product } from "@/libs/getProduct";
+import { AddToCart } from "@/components/AddToCart";
+import { ComponentProps } from "react";
+import { ProductPageSeo } from "@/components/ProductPageSeo";
+import { useReplaceSchedule } from "@/libs/hooks/useReplaceSchedule";
 
 const productSets: { handle: string; productId: number }[] = JSON.parse(
   process.env.PRODUCT_HANDLES ?? "[]"
@@ -18,12 +15,12 @@ export const getStaticPaths: GetStaticPaths = async () => {
       productSets.map(({ handle }) => ({
         params: { handle },
       })) ?? [],
-    fallback: 'blocking',
+    fallback: "blocking",
   };
 };
 
 export const getStaticProps: GetStaticProps<
-  { product: Product; handle: string; productId: number },
+  Props,
   { handle: string }
 > = async ({ params }) => {
   const handle = params?.handle;
@@ -32,51 +29,39 @@ export const getStaticProps: GetStaticProps<
     return {
       redirect: {
         statusCode: 301,
-        destination: `/${productSets[0].handle}`
+        destination: `/${productSets[0].handle}`,
       },
-      revalidate: 3600
-    }
+      revalidate: 3600,
+    };
 
-  const product = await getProductByHandle(handle);
+  const productId = productSets.find(
+    ({ handle: h }) => h === handle
+  )!.productId;
+  const product = await getProduct(handle, productId);
 
   return {
     props: {
       product,
       handle,
-      productId: productSets.find(({ handle: h }) => h === handle)!.productId,
+      productId,
     },
     revalidate: 3600,
   };
 };
 
-export const Page: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
-  product,
-  handle,
-  productId,
-}) => {
-  const title = product.seo.title || product.title;
-  const shortTitle = title.split("|")[0].trim();
-  const description = product.seo.description || product.description;
+type Props = ComponentProps<typeof AddToCart> &
+  ComponentProps<typeof ProductPageSeo> & { product: Product };
+
+export const Page = (props: Props) => {
+  useReplaceSchedule(props.product);
+
   return (
     <>
-      <NextSeo
-        title={title}
-        description={description}
-        openGraph={{
-          site_name: shortTitle,
-          url: `https://${process.env.NEXT_PUBLIC_SITE_DOMAIN}/${handle}`,
-          type: "article",
-          title,
-          description,
-          locale: "ja_JP",
-          images: product.images.edges.slice(0, 1).map(({ node }) => node),
-        }}
-        twitter={{
-          cardType: "summary_large_image",
-        }}
+      <ProductPageSeo {...props} />
+      <div
+        dangerouslySetInnerHTML={{ __html: props.product.descriptionHtml }}
       />
-      <ReplaceDeliverySchedule productId={productId} />
-      <div dangerouslySetInnerHTML={{ __html: product.descriptionHtml }} />
+      <AddToCart {...props} />
     </>
   );
 };
