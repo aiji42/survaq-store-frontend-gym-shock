@@ -1,14 +1,9 @@
-import {
-  GetStaticPaths,
-  GetStaticProps,
-  InferGetStaticPropsType,
-  NextPage,
-} from "next";
-import { getProductByHandle, Product } from "@/libs/shopify";
-import { NextSeo } from "next-seo";
+import { GetStaticPaths, GetStaticProps } from "next";
+import { getProduct, Product } from "@/libs/getProduct";
 import { ReplaceDeliverySchedule } from "@/components/ReplaceDeliverySchedule";
-import { getProductFromApi, ProductFromApi } from "@/libs/restApi";
-import { Cart } from "@/components/Cart";
+import { AddToCart } from "@/components/AddToCart";
+import { ComponentProps } from "react";
+import { ProductPageSeo } from "@/components/ProductPageSeo";
 
 const productSets: { handle: string; productId: number }[] = JSON.parse(
   process.env.PRODUCT_HANDLES ?? "[]"
@@ -25,9 +20,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 };
 
 export const getStaticProps: GetStaticProps<
-  { product: Product; handle: string; productId: number } & Required<
-    Pick<ProductFromApi, "variants" | "skuLabel" | "rule">
-  >,
+  Props,
   { handle: string }
 > = async ({ params }) => {
   const handle = params?.handle;
@@ -44,61 +37,31 @@ export const getStaticProps: GetStaticProps<
   const productId = productSets.find(
     ({ handle: h }) => h === handle
   )!.productId;
-  const [product, { variants = [], skuLabel = "", rule }] = await Promise.all([
-    getProductByHandle(handle),
-    getProductFromApi(productId),
-  ]);
+  const product = await getProduct(handle, productId);
 
   return {
     props: {
       product,
       handle,
       productId,
-      variants,
-      skuLabel,
-      rule,
     },
     revalidate: 3600,
   };
 };
 
-export const Page: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
-  product,
-  handle,
-  productId,
-  variants,
-  skuLabel,
-  rule,
-}) => {
-  const title = product.seo.title || product.title;
-  const shortTitle = title.split("|")[0].trim();
-  const description = product.seo.description || product.description;
+type Props = ComponentProps<typeof AddToCart> &
+  ComponentProps<typeof ReplaceDeliverySchedule> &
+  ComponentProps<typeof ProductPageSeo> & { product: Product };
+
+export const Page = (props: Props) => {
   return (
     <>
-      <NextSeo
-        title={title}
-        description={description}
-        openGraph={{
-          site_name: shortTitle,
-          url: `https://${process.env.NEXT_PUBLIC_SITE_DOMAIN}/${handle}`,
-          type: "article",
-          title,
-          description,
-          locale: "ja_JP",
-          images: product.images.edges.slice(0, 1).map(({ node }) => node),
-        }}
-        twitter={{
-          cardType: "summary_large_image",
-        }}
+      <ProductPageSeo {...props} />
+      <ReplaceDeliverySchedule {...props} />
+      <div
+        dangerouslySetInnerHTML={{ __html: props.product.descriptionHtml }}
       />
-      <ReplaceDeliverySchedule productId={productId} />
-      <div dangerouslySetInnerHTML={{ __html: product.descriptionHtml }} />
-      <Cart
-        variants={variants}
-        skuLabel={skuLabel}
-        rule={rule}
-        productId={productId}
-      />
+      <AddToCart {...props} />
     </>
   );
 };

@@ -1,4 +1,4 @@
-import { ProductFromApi } from "@/libs/restApi";
+import { Product } from "@/libs/getProduct";
 import Script from "next/script";
 import { ReactNode, useReducer, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -22,9 +22,8 @@ declare global {
   }
 }
 
-type Props = Required<
-  Pick<ProductFromApi, "variants" | "skuLabel" | "rule">
-> & {
+type Props = {
+  product: Product;
   productId: number;
 };
 
@@ -33,14 +32,17 @@ type ProductObject = {
   setCustomAttributes: (arg: CustomAttributes) => void;
 };
 
-type Variant = Exclude<ProductFromApi["variants"], undefined>[number];
+type Variant = Product["variants"][number];
 
 const times = (n: number) =>
   Array(n)
     .fill(0)
     .map((_, index) => index);
 
-export const Cart = ({ variants, rule, skuLabel, productId }: Props) => {
+export const AddToCart = ({
+  product: { variants, rule, skuLabel },
+  productId,
+}: Props) => {
   const target = useRef<HTMLDivElement>();
   const [selects, handleSku] = useReducer(
     (
