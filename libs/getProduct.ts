@@ -126,15 +126,19 @@ const getProductOnApi = async (
 };
 
 export type Product = ProductOnShopify &
-  Omit<ProductOnApi, "id" | "productCode" | "productName" | "variants"> & {
+  Omit<
+    ProductOnApi,
+    "id" | "productCode" | "productName" | "variants" | "skuLabel"
+  > & {
     variants: Array<Variant>;
+    skuLabel: string | null;
   };
 
 export const getProduct = async (
   handle: string,
   id: string | number
 ): Promise<Product> => {
-  const [shopify, { variants = [], skuLabel, foundation, rule }] =
+  const [shopify, { variants = [], skuLabel = null, foundation, rule }] =
     await Promise.all([getProductOnShopify(handle), getProductOnApi(id)]);
 
   return { ...shopify, variants, skuLabel, foundation, rule };
