@@ -127,44 +127,16 @@ export const Cart = ({ variants, rule, skuLabel, productId }: Props) => {
               product: {
                 iframe: false,
                 templates: {
-                  button:
-                    '<div id="custom-selects-wrapper"></div><div class="shopify-buy__btn-wrapper" data-element="product.buttonWrapper"><button class="shopify-buy__btn  " data-element="product.button">カートに追加</button></div>',
-                },
-                styles: {
-                  product: {
-                    "@media (min-width: 601px)": {
-                      "max-width": "calc(25% - 20px)",
-                      "margin-left": "20px",
-                      "margin-bottom": "50px",
-                    },
-                  },
-                  button: {
-                    "font-size": "17px",
-                    "padding-top": "16.5px",
-                    "padding-bottom": "16.5px",
-                    ":hover": {
-                      "background-color": "#a4514e",
-                    },
-                    "background-color": "#b65a57",
-                    ":focus": {
-                      "background-color": "#a4514e",
-                    },
-                    "padding-left": "50px",
-                    "padding-right": "50px",
-                  },
-                  quantityInput: {
-                    "font-size": "17px",
-                    "padding-top": "16.5px",
-                    "padding-bottom": "16.5px",
-                  },
+                  button: `
+                     <div id="custom-selects-wrapper"></div>
+                     <div class="shopify-buy__btn-wrapper" data-element="product.buttonWrapper">
+                        <button class="shopify-buy__btn" data-element="product.button">カートに追加</button>
+                     </div>`,
                 },
                 contents: {
                   img: false,
                   title: false,
                   price: false,
-                },
-                text: {
-                  button: "カートに追加",
                 },
                 events: {
                   afterRender: function (product: ProductObject) {
@@ -190,62 +162,6 @@ export const Cart = ({ variants, rule, skuLabel, productId }: Props) => {
                       );
                   },
                 },
-              },
-              productSet: {
-                styles: {
-                  products: {
-                    "@media (min-width: 601px)": {
-                      "margin-left": "-20px",
-                    },
-                  },
-                },
-              },
-              modalProduct: {
-                contents: {
-                  img: false,
-                  imgWithCarousel: true,
-                  button: false,
-                  buttonWithQuantity: true,
-                },
-                styles: {
-                  product: {
-                    "@media (min-width: 601px)": {
-                      "max-width": "100%",
-                      "margin-left": "0px",
-                      "margin-bottom": "0px",
-                    },
-                  },
-                  button: {
-                    "font-size": "17px",
-                    "padding-top": "16.5px",
-                    "padding-bottom": "16.5px",
-                    ":hover": {
-                      "background-color": "#a4514e",
-                    },
-                    "background-color": "#b65a57",
-                    ":focus": {
-                      "background-color": "#a4514e",
-                    },
-                    "padding-left": "50px",
-                    "padding-right": "50px",
-                  },
-                  quantityInput: {
-                    "font-size": "17px",
-                    "padding-top": "16.5px",
-                    "padding-bottom": "16.5px",
-                  },
-                },
-                text: {
-                  button: "Add to cart",
-                },
-              },
-              option: {
-                styles: {
-                  label: {
-                    color: "#464646",
-                  },
-                },
-                googleFonts: ["Droid Sans"],
               },
               cart: {
                 styles: {
