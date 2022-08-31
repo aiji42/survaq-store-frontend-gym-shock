@@ -1,6 +1,26 @@
 import { ProductFromApi } from "@/libs/restApi";
 import Script from "next/script";
-import { useEffect, useMemo, useReducer, useState } from "react";
+import { ReactNode, useReducer, useRef } from "react";
+import { createPortal } from "react-dom";
+
+type CustomAttributes = { key: string; value: string }[];
+
+declare global {
+  interface Window {
+    ShopifyCustomAttribute?: CustomAttributes;
+    ShopifyBuy: {
+      buildClient: (arg: {
+        domain: string;
+        storefrontAccessToken: string;
+      }) => unknown;
+      UI: {
+        init: (arg: unknown) => {
+          createComponent: (name: string, options: unknown) => void;
+        };
+      };
+    };
+  }
+}
 
 type Props = Required<
   Pick<ProductFromApi, "variants" | "skuLabel" | "rule">
@@ -10,110 +30,86 @@ type Props = Required<
 
 type ProductObject = {
   selectedVariantTrackingInfo: { id: string };
-  setCustomAttributes: (arg: Array<{ key: string; value: string }>) => void;
+  setCustomAttributes: (arg: CustomAttributes) => void;
 };
 
-export const Cart = ({ variants, rule, skuLabel, productId }: Props) => {
-  const [selectingVariantId, setVariantId] = useState<string | null>(null);
-  const variant = useMemo(() => {
-    return variants.find(({ variantId }) => variantId === selectingVariantId);
-  }, [selectingVariantId, variants]);
-  const selects = Array(variant?.skuSelectable ?? 0)
+type Variant = Exclude<ProductFromApi["variants"], undefined>[number];
+
+const times = (n: number) =>
+  Array(n)
     .fill(0)
-    .map((_, index) => {
-      const label = skuLabel
-        ? skuLabel?.replace(/#/g, String(index + 1))
-        : null;
+    .map((_, index) => index);
 
-      return { label, skus: variant?.skus ?? [] };
-    });
-
-  const [selectedSkus, handleSku] = useReducer(
+export const Cart = ({ variants, rule, skuLabel, productId }: Props) => {
+  const target = useRef<HTMLDivElement>();
+  const [selects, handleSku] = useReducer(
     (
-      s: { code: string; name: string }[],
-      a:
-        | { type: "reset"; count: number }
+      status: {
+        label: string;
+        variant: Variant;
+        selected: { code: string; name: string };
+      }[],
+      action:
+        | { type: "reset"; variant: Variant | undefined }
         | { type: "select"; index: number; value: string }
     ) => {
-      if (a.type === "reset") {
-        if (a.count === 0) {
-          return variant?.skus ?? [];
-        }
-
-        return Array(a.count)
-          .fill(0)
-          .map((_, index) => ({
-            code: selects[index].skus[0].code,
-            name: selects[index].skus[0].name,
-          }));
+      if (action.type === "reset") {
+        const { variant } = action;
+        if (!variant) return [];
+        const { code, name } = variant.skus[0];
+        return times(variant.skuSelectable).map((index) => ({
+          label: skuLabel ? skuLabel.replace(/#/g, String(index + 1)) : "",
+          variant,
+          selected: { code, name },
+        }));
       }
 
-      s[a.index] = {
-        code: a.value,
+      status[action.index].selected = {
+        code: action.value,
         name:
-          selects[a.index].skus.find(({ code }) => code === a.value)?.name ??
-          "",
+          status[action.index].variant.skus.find(
+            ({ code }) => code === action.value
+          )?.name ?? "",
       };
 
-      return s;
+      return status;
     },
     []
   );
-  useEffect(() => {
-    handleSku({ type: "reset", count: variant?.skuSelectable ?? 0 });
-  }, [variant]);
 
-  useEffect(() => {
+  if (typeof window !== "undefined")
     window.ShopifyCustomAttribute = [
-      ...selectedSkus.map(({ name }, index) => ({
-        key: selects[index].label ?? "",
-        value: name,
+      ...selects.map(({ label, selected }) => ({
+        key: label,
+        value: selected.name,
       })),
-      {
-        key: "_skus",
-        value: JSON.stringify(selectedSkus.map(({ code }) => code)),
-      },
       {
         key: "配送予定",
         value: `${rule.schedule.text}(${rule.schedule.subText})`,
       },
-      {
-        key: "_delivery_schedule",
-        value: `${rule.schedule.year}-${String(rule.schedule.month).padStart(
-          2,
-          "0"
-        )}-${rule.schedule.term}`,
-      },
     ];
-  }, [
-    rule.schedule.month,
-    rule.schedule.subText,
-    rule.schedule.term,
-    rule.schedule.text,
-    rule.schedule.year,
-    selectedSkus,
-    selects,
-  ]);
 
   return (
     <>
-      {selects.map((select, index) => (
-        <label key={index}>
-          {select.label}
-          <select
-            onChange={(e) =>
-              handleSku({ type: "select", value: e.target.value, index })
-            }
-            defaultValue={selectedSkus[index]?.code}
-          >
-            {select.skus.map(({ name, code }) => (
-              <option key={code} value={code}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </label>
-      ))}
+      <MountOnBuyButton target={target.current}>
+        {selects.map(({ label, selected, variant }, index) => (
+          <div key={index}>
+            <label>{label}</label>
+            <select
+              onChange={(e) =>
+                handleSku({ type: "select", value: e.target.value, index })
+              }
+              defaultValue={selected.code}
+            >
+              {variant.skus.map(({ name, code }) => (
+                <option key={code} value={code}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
+        ))}
+      </MountOnBuyButton>
       <Script
         src="/buybutton.js"
         strategy="afterInteractive"
@@ -121,7 +117,7 @@ export const Cart = ({ variants, rule, skuLabel, productId }: Props) => {
           const client = window.ShopifyBuy.buildClient({
             domain: "survaq.myshopify.com",
             storefrontAccessToken:
-              process.env.NEXT_PUBLIC_STORE_FRONT_ACCESS_TOKEN,
+              process.env.NEXT_PUBLIC_STORE_FRONT_ACCESS_TOKEN ?? "",
           });
           window.ShopifyBuy.UI.init(client).createComponent("product", {
             id: productId,
@@ -130,6 +126,10 @@ export const Cart = ({ variants, rule, skuLabel, productId }: Props) => {
             options: {
               product: {
                 iframe: false,
+                templates: {
+                  button:
+                    '<div id="custom-selects-wrapper"></div><div class="shopify-buy__btn-wrapper" data-element="product.buttonWrapper"><button class="shopify-buy__btn  " data-element="product.button">カートに追加</button></div>',
+                },
                 styles: {
                   product: {
                     "@media (min-width: 601px)": {
@@ -168,19 +168,26 @@ export const Cart = ({ variants, rule, skuLabel, productId }: Props) => {
                 },
                 events: {
                   afterRender: function (product: ProductObject) {
-                    const id = product.selectedVariantTrackingInfo.id.replace(
-                      "gid://shopify/ProductVariant/",
-                      ""
-                    );
-                    setVariantId(id);
+                    handleSku({
+                      type: "reset",
+                      variant: variants.find(
+                        ({ variantId }) =>
+                          variantId ===
+                          product.selectedVariantTrackingInfo.id.replace(
+                            "gid://shopify/ProductVariant/",
+                            ""
+                          )
+                      ),
+                    });
+                    target.current = document
+                      .getElementById("custom-selects-wrapper")!
+                      .appendChild(document.createElement("div"));
                   },
                   addVariantToCart: (product: ProductObject) => {
-                    console.log(window.ShopifyCustomAttribute);
-                    if (window.ShopifyCustomAttribute) {
+                    if (window.ShopifyCustomAttribute)
                       product.setCustomAttributes(
                         window.ShopifyCustomAttribute
                       );
-                    }
                   },
                 },
               },
@@ -286,4 +293,15 @@ export const Cart = ({ variants, rule, skuLabel, productId }: Props) => {
       />
     </>
   );
+};
+
+const MountOnBuyButton = ({
+  children,
+  target,
+}: {
+  children: ReactNode;
+  target: HTMLDivElement | undefined;
+}) => {
+  if (!target) return <></>;
+  return createPortal(children, target);
 };
