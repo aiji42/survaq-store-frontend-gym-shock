@@ -108,9 +108,7 @@ const makeOnLoad =
     });
     window.ShopifyBuy.UI.init(client).createComponent("product", {
       id: productId,
-      node:
-        document.getElementById("buy-button") ??
-        document.getElementById("product-component-1658452708280"),
+      node: document.getElementById("buy-button"),
       moneyFormat: "%C2%A5%7B%7Bamount_no_decimals%7D%7D",
       options: {
         product: {

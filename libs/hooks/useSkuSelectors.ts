@@ -19,6 +19,8 @@ export const useSkuSelectors = ({ skuLabel }: Pick<Product, "skuLabel">) => {
       if (action.type === "reset") {
         const { variant } = action;
         if (!variant) return [];
+        if (variant.variantId === status[0]?.variant.variantId)
+          return [...status];
         const { code, name } = variant.skus[0];
         return times(variant.skuSelectable).map((index) => ({
           label: skuLabel ? skuLabel.replace(/#/g, String(index + 1)) : "",
